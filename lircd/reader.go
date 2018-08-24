@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -23,12 +24,66 @@ type Lircd struct {
 	action []string
 }
 
-func analyzeLircd(f *os.File) *Lircd {
+func analyzeLircd(f *os.File) (lircd *Lircd) {
+	lircd = &Lircd{}
+	lircd.action = make([]string, 0, 10)
 	scanner := bufio.NewScanner(f)
+	flag := ""
+
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+		line := scanner.Text()
+		if strings.Contains(line, beginRemote) {
+			flag = beginRemote
+			continue
+		} else if strings.Contains(line, beginCodes) && flag == beginRemote {
+			flag = beginCodes
+			continue
+		} else if strings.Contains(line, endCodes) && flag == beginCodes {
+			flag = endCodes
+			continue
+		} else if strings.Contains(line, beginRawCode) && flag == beginRemote {
+			flag = beginRawCode
+			continue
+		} else if strings.Contains(line, endRawCode) && flag == beginRawCode {
+			flag = endRawCode
+			continue
+		} else if strings.Contains(line, endRemote) {
+			break
+		}
+
+		splitSpace := func(c rune) bool {
+			return c == ' '
+		}
+
+		// get lircd name
+		if strings.Contains(line, codeName) && flag == beginRemote {
+			names := strings.FieldsFunc(line, splitSpace)
+			if len(names) < 1 {
+				continue
+			}
+			lircd.name = strings.Trim(names[1], " ")
+		}
+
+		// gat names when the file is begin code
+		if flag == beginCodes {
+			names := strings.FieldsFunc(line, splitSpace)
+			if len(names) < 2 {
+				continue
+			}
+			lircd.action = append(lircd.action, names[0])
+		}
+
+		if flag == beginRawCode {
+			if strings.Contains(line, codeName) {
+				names := strings.FieldsFunc(line, splitSpace)
+				if len(names) < 2 {
+					continue
+				}
+				lircd.action = append(lircd.action, strings.Trim(names[1], " "))
+			}
+		}
 	}
-	return &Lircd{}
+	return
 }
 
 func loadFile(filepath string, lircd chan *Lircd) {
@@ -57,6 +112,8 @@ func LoadLircdConf(dirPath string) error {
 
 	for range files {
 		if l := <-lircd; l != nil {
+			fmt.Println(l.name)
+			fmt.Println(l.action)
 			lircds = append(lircds, l)
 		}
 	}

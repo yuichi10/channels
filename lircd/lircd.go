@@ -29,5 +29,9 @@ func (l Lircd) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(irsend, sendOnce, paths[2], paths[3])
-	exec.Command(irsend, sendOnce, paths[2], paths[3])
+	err := exec.Command(irsend, sendOnce, paths[2], paths[3]).Run()
+	if err != nil {
+		fmt.Println("failed to exec command:", err)
+		return
+	}
 }

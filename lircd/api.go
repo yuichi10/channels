@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
+	"github.com/yuichi10/channels/config"
 )
 
 const (
@@ -26,5 +27,5 @@ func StartServer(ls []*Lircd) {
 		}
 	}
 	http.Handle("/", r)
-	http.ListenAndServe(":8686", r)
+	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
 }

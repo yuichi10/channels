@@ -16,5 +16,9 @@ func main() {
 		log.Fatal("failed to get working directory")
 	}
 	dir := filepath.Join(wd, "lircd.conf.d")
-	lircd.LoadLircdConf(dir)
+	lircds, err := lircd.LoadLircdConf(dir)
+	if err != nil {
+		panic(err)
+	}
+	lircd.StartServer(lircds)
 }

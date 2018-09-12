@@ -19,11 +19,6 @@ const (
 	codeName     = "name"
 )
 
-type Lircd struct {
-	name   string
-	action []string
-}
-
 func analyzeLircd(f *os.File) (lircd *Lircd) {
 	lircd = &Lircd{}
 	lircd.action = make([]string, 0, 10)
@@ -73,6 +68,7 @@ func analyzeLircd(f *os.File) (lircd *Lircd) {
 			lircd.action = append(lircd.action, names[0])
 		}
 
+		// get names when the file is raw code
 		if flag == beginRawCode {
 			if strings.Contains(line, codeName) {
 				names := strings.FieldsFunc(line, splitSpace)
@@ -95,12 +91,12 @@ func loadFile(filepath string, lircd chan *Lircd) {
 	lircd <- analyzeLircd(f)
 }
 
-func LoadLircdConf(dirPath string) error {
+// LoadLircdConf read lircd files and return Lircd list
+func LoadLircdConf(dirPath string) (Lircds, error) {
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
-		return fmt.Errorf("failed to load lircd file: %s", err)
+		return nil, fmt.Errorf("failed to load lircd file: %s", err)
 	}
-	// var wg sync.WaitGroup
 
 	lircds := make([]*Lircd, 0, 5)
 	lircd := make(chan *Lircd, 4)
@@ -117,6 +113,5 @@ func LoadLircdConf(dirPath string) error {
 			lircds = append(lircds, l)
 		}
 	}
-	fmt.Println(lircds)
-	return nil
+	return lircds, nil
 }

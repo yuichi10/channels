@@ -2,11 +2,9 @@ package lircd
 
 import (
 	"fmt"
-	"net/http"
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/yuichi10/channels/config"
 )
 
 const (
@@ -15,8 +13,7 @@ const (
 )
 
 // StartServer stand up api
-func StartServer(ls []*Lircd) {
-	r := mux.NewRouter()
+func StartServer(ls []*Lircd, r *mux.Router) {
 	base := path.Join(apiPath, version)
 	fmt.Println("There is under paths")
 	for _, l := range ls {
@@ -26,6 +23,4 @@ func StartServer(ls []*Lircd) {
 			r.Handle(path, l)
 		}
 	}
-	http.Handle("/", r)
-	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
 }

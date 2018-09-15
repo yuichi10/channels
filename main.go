@@ -69,5 +69,4 @@ func main() {
 	lircd.StartServer(lircds, r)
 	http.Handle("/", r)
 	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
-
 }
